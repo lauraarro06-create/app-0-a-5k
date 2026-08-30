@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>De 0 a 5K — Movimiento Consciente</title>
+<style>
+  :root{
+    --bg:#f6f7f4; --card:#ffffff; --border:#e4e7e0; --border-strong:#cdd3c7;
+    --text:#20261f; --text-secondary:#5c6459; --text-muted:#93998e;
+    --forest:#1f4a3a; --forest-strong:#123024; --forest-tint:#e3ece6;
+    --sage:#7fa484; --sage-tint:#eaf1e9; --sage-mid:#c4d8c3;
+    --gold:#c99a3e; --gold-tint:#f7eedb;
+    --radius:14px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:var(--font); background:var(--bg); color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:420px; margin:0 auto; min-height:100vh; padding:0 0 3rem; position:relative;}
+
+  .header-banner{
+    background:linear-gradient(135deg, var(--forest) 0%, var(--forest-strong) 100%);
+    padding:1.75rem 1.25rem 2.1rem; border-radius:0 0 26px 26px; margin-bottom:1.1rem;
+    text-align:center; position:relative; overflow:hidden;
+  }
+  .header-banner::before{
+    content:''; position:absolute; top:-40px; right:-40px; width:140px; height:140px;
+    border-radius:50%; background:rgba(255,255,255,0.06);
+  }
+  .header-banner::after{
+    content:''; position:absolute; bottom:-50px; left:-30px; width:120px; height:120px;
+    border-radius:50%; background:rgba(255,255,255,0.05);
+  }
+  .header-banner p{margin:0; font-size:11.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--sage-mid); font-weight:600; position:relative;}
+  .header-banner h1{margin:6px 0 0; font-size:26px; font-weight:700; color:#fff; letter-spacing:-0.01em; position:relative;}
+  .header-banner .tag{
+    display:inline-block; margin-top:10px; background:rgba(255,255,255,0.14); color:#fff;
+    font-size:11px; font-weight:600; padding:4px 12px; border-radius:20px; position:relative;
+  }
+
+  .content{padding:0 1rem;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:1.1rem 1.2rem;}
+  .progress-track{height:9px; border-radius:5px; background:var(--sage-tint); overflow:hidden; margin-top:10px;}
+  .progress-fill{height:100%; background:linear-gradient(90deg, var(--sage) 0%, var(--forest) 100%); border-radius:5px; transition:width .3s ease;}
+  .progress-row{display:flex; justify-content:space-between; align-items:baseline; font-size:13px;}
+  .progress-row .label{color:var(--text-secondary);}
+  .progress-row .value{font-weight:700; color:var(--forest);}
+
+  .weeks-title{font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin:1.25rem 0 8px; font-weight:600;}
+  .week-item{
+    display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:13px;
+    border:1px solid var(--border); margin-bottom:9px; cursor:pointer; position:relative;
+    border-left:4px solid var(--block-color, var(--border));
+  }
+  .week-item.locked{opacity:0.5; cursor:default;}
+  .week-item.current{box-shadow:0 2px 10px rgba(31,74,58,0.1);}
+  .week-icon{width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px;}
+  .week-icon.done{background:var(--forest); color:#fff;}
+  .week-icon.now{background:var(--block-color, var(--forest)); color:#fff;}
+  .week-icon.locked-icon{background:var(--border); color:var(--text-muted);}
+  .week-info{flex:1; min-width:0;}
+  .week-info .name{font-size:14px; font-weight:700; margin:0;}
+  .week-info .sub{font-size:12px; color:var(--text-secondary); margin:2px 0 0;}
+  .week-status{font-size:11px; color:var(--text-muted); flex-shrink:0; font-weight:600;}
+
+  .cta{
+    width:100%; padding:14px; border-radius:12px; border:none; background:var(--forest);
+    color:#fff; font-size:14.5px; font-weight:700; margin-top:1.25rem; cursor:pointer;
+  }
+  .cta:active{opacity:0.85;}
+  .cta.secondary{background:transparent; border:1.5px solid var(--border-strong); color:var(--text);}
+  .cta.gold{background:var(--gold);}
+
+  .back-btn{
+    background:none; border:none; color:var(--text-secondary); font-size:14px; padding:14px 0 12px;
+    cursor:pointer; display:flex; align-items:center; gap:4px;
+  }
+
+  .day-progress-track{display:flex; gap:6px; margin-bottom:1.2rem;}
+  .dot{flex:1; height:6px; border-radius:3px; background:var(--border);}
+  .dot.filled{background:var(--forest);}
+
+  .session-card{margin-bottom:1rem;}
+  .session-head{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .session-head .badge{
+    width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-size:17px; background:var(--sage-tint); flex-shrink:0;
+  }
+  .session-head h3{margin:0; font-size:15px; font-weight:700;}
+  .session-head .sub{margin:0; font-size:12px; color:var(--text-secondary);}
+  .step-row{display:flex; justify-content:space-between; font-size:13.5px; padding:7px 0; border-bottom:1px solid var(--border);}
+  .step-row:last-child{border-bottom:none;}
+  .step-row .k{color:var(--text-secondary);}
+  .exlist{margin:0; padding-left:18px; font-size:13.5px; line-height:1.9;}
+
+  .tip{
+    background:var(--sage-tint); border-radius:12px; padding:12px 14px; margin-top:1rem;
+    font-size:13px; color:var(--forest-strong); line-height:1.55; display:flex; gap:10px;
+  }
+  .tip .icon{flex-shrink:0;}
+
+  .done-check{
+    width:100%; padding:13px; border-radius:11px; margin-top:14px; font-size:14px; font-weight:700;
+    border:1.5px solid var(--border-strong); background:#fff; color:var(--text); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .done-check.completed{background:var(--forest); border-color:var(--forest); color:#fff;}
+  .locked-msg{
+    text-align:center; font-size:13px; color:var(--text-muted); padding:2rem 1rem;
+  }
+
+  .celebrate{text-align:center; padding:2rem 1rem;}
+  .celebrate .emoji{font-size:44px;}
+  .celebrate h2{margin:14px 0 6px; font-size:20px; color:var(--forest-strong);}
+  .celebrate p{color:var(--text-secondary); font-size:14px; line-height:1.6; margin:0 0 1.5rem;}
+
+  .reset-link{
+    display:block; text-align:center; margin-top:1.5rem; font-size:12px; color:var(--text-muted);
+    background:none; border:none; cursor:pointer; width:100%;
+  }
+
+  textarea{
+    width:100%; border:1.5px solid var(--border-strong); border-radius:11px; padding:12px;
+    font-family:var(--font); font-size:14px; color:var(--text); resize:vertical; min-height:80px;
+    background:#fff;
+  }
+  label.field-label{display:block; font-size:13px; font-weight:600; color:var(--text); margin:1rem 0 6px;}
+  label.field-label:first-of-type{margin-top:0;}
+
+  .upsell-card{
+    background:linear-gradient(135deg, var(--forest) 0%, var(--forest-strong) 100%);
+    border-radius:18px; padding:1.5rem 1.3rem; color:#fff; margin-top:1.25rem;
+  }
+  .upsell-card p.eyebrow{margin:0; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--sage-mid); font-weight:700;}
+  .upsell-card h3{margin:6px 0 8px; font-size:19px; font-weight:700;}
+  .upsell-card p.body{margin:0; font-size:13.5px; line-height:1.6; color:rgba(255,255,255,0.85);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HOME SCREEN -->
+  <div class="screen active" id="home-screen">
+    <div class="header-banner">
+      <p>Movimiento Consciente</p>
+      <h1>De 0 a 5K</h1>
+      <span class="tag">🏃‍♀️ 8 semanas · tu propio ritmo</span>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="progress-row">
+          <span class="label">Progreso general</span>
+          <span class="value" id="home-progress-label">0 de 24 sesiones</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="home-progress-fill" style="width:0%"></div></div>
+      </div>
+
+      <p class="weeks-title">Semanas</p>
+      <div id="weeks-list"></div>
+
+      <button class="cta" id="go-today-btn">Ir al entrenamiento de hoy</button>
+      <button class="reset-link" id="reset-btn">Reiniciar mi progreso</button>
+    </div>
+  </div>
+
+  <!-- WEEK SCREEN -->
+  <div class="screen" id="week-screen">
+    <div class="content">
+      <button class="back-btn" id="back-to-home">‹ Volver</button>
+      <div class="day-progress-track" id="week-dots"></div>
+      <div id="week-content"></div>
+    </div>
+  </div>
+
+  <!-- CELEBRATION SCREEN -->
+  <div class="screen" id="finish-screen">
+    <div class="content">
+      <div class="celebrate">
+        <div class="emoji">🏅</div>
+        <h2>¡Completaste el plan!</h2>
+        <p>8 semanas, 24 sesiones. Llegaste a los 5K por tu propio esfuerzo — eso ya no te lo saca nadie.</p>
+        <button class="cta" id="finish-to-reflection-btn">Contar mi experiencia</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFLECTION SCREEN -->
+  <div class="screen" id="reflection-screen">
+    <div class="content" style="padding-top:1.5rem;">
+      <h2 style="font-size:18px; margin:0 0 4px;">Tu experiencia</h2>
+      <p style="font-size:13px; color:var(--text-secondary); margin:0 0 4px; line-height:1.6;">Antes de cerrar, contanos cómo fue. Nos ayuda un montón, y te va a servir a vos también para ver todo lo que lograste.</p>
+
+      <label class="field-label">¿Cómo te sentís después de terminar el plan?</label>
+      <textarea id="reflection-feel" placeholder="Escribí acá..."></textarea>
+
+      <label class="field-label">¿Qué fue lo que más te costó, y cómo lo superaste?</label>
+      <textarea id="reflection-challenge" placeholder="Escribí acá..."></textarea>
+
+      <label class="field-label">¿Recomendarías este plan? ¿Por qué?</label>
+      <textarea id="reflection-recommend" placeholder="Escribí acá..."></textarea>
+
+      <button class="cta" id="save-reflection-btn">Guardar y continuar</button>
+    </div>
+  </div>
+
+  <!-- UPSELL SCREEN -->
+  <div class="screen" id="upsell-screen">
+    <div class="content" style="padding-top:1.5rem;">
+      <div class="celebrate" style="padding-top:0;">
+        <div class="emoji">🎉</div>
+        <h2>¡Gracias por compartirlo!</h2>
+        <p>Guardamos tu experiencia. Ya diste el paso más difícil.</p>
+      </div>
+
+      <div class="upsell-card">
+        <p class="eyebrow">El siguiente desafío</p>
+        <h3>De 5 a 10K</h3>
+        <p class="body">Ya demostraste que podés sostener un plan y llegar a la meta. El programa de 5 a 10K toma justo donde termina este, con la misma progresión gradual en la que confiaste hasta acá.</p>
+      </div>
+
+      <a href="#" id="whatsapp-btn" class="cta" style="display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; background:#25D366;">
+        <span>📲</span> Quiero saber más por WhatsApp
+      </a>
+      <button class="cta secondary" id="upsell-back-btn">Volver al inicio</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ---------- DATA ----------
+const runSessions = [
+  {series:8, run:"1'", walk:"2'"},
+  {series:8, run:"1'30\"", walk:"2'"},
+  {series:6, run:"2'", walk:"1'30\""},
+  {series:6, run:"3'", walk:"1'30\""},
+  {series:4, run:"4'", walk:"1'30\""},
+  {series:3, run:"6'", walk:"1'30\""},
+  {series:2, run:"10'", walk:"2'"},
+  null
+];
+
+const strengthBlocks = [
+  ["Sentadilla con silla — 3x10","Puente de glúteo — 3x12","Plancha en rodillas — 3x20-30\"","Movilidad de tobillo — 10 c/lado","Movilidad de cadera — 10 c/lado"],
+  ["Sentadilla con silla — 3x10","Puente de glúteo — 3x12","Plancha en rodillas — 3x20-30\"","Movilidad de tobillo — 10 c/lado","Movilidad de cadera — 10 c/lado"],
+  ["Sentadilla libre — 3x12","Zancada estática — 3x8 c/pierna","Puente de glúteo a una pierna — 3x8 c/lado","Plancha en rodillas — 3x30-40\"","Movilidad de cadera y tobillo"],
+  ["Sentadilla libre — 3x12","Zancada estática — 3x8 c/pierna","Puente de glúteo a una pierna — 3x8 c/lado","Plancha en rodillas — 3x30-40\"","Movilidad de cadera y tobillo"],
+  ["Sentadilla libre — 4x12","Zancada caminando — 3x10 pasos","Puente de glúteo a una pierna — 3x10 c/lado","Plancha completa — 3x30-40\"","Dead bug — 3x8 c/lado"],
+  ["Sentadilla libre — 4x12","Zancada caminando — 3x10 pasos","Puente de glúteo a una pierna — 3x10 c/lado","Plancha completa — 3x30-40\"","Dead bug — 3x8 c/lado"],
+  ["Sentadilla libre — 2x12 (versión suave)","Zancada caminando — 2x10 pasos","Plancha completa — 2x30\"","Movilidad de cadera y tobillo (foco extra)"],
+  ["Solo movilidad: tobillo, cadera y elongación suave. Nada de carga — activación previa a los 5K."]
+];
+
+const weeklyTips = [
+  "Tip de Laura: si en los tramos de trote sentís que te falta el aire para hablar, bajá un cambio. No es carrera, es progreso.",
+  "Tip de Laura: revisá tus zapatillas. No hace falta que sean carísimas, pero sí que tengan buena amortiguación para este tipo de trabajo.",
+  "Tip de Laura: tomá agua antes de salir, no esperes a tener sed durante la sesión.",
+  "Tip de Laura: si un día el cuerpo no da, está bien caminar un poco más y trotar un poco menos. Lo importante es sostener la constancia.",
+  "Tip de Laura: dormir bien el día anterior rinde tanto como el entrenamiento mismo. No lo subestimes.",
+  "Tip de Laura: ya estás a mitad de camino de algo que hace unas semanas parecía imposible. Registralo.",
+  "Tip de Laura: esta semana es de acumular calma, no de acumular kilómetros. Guardá energía para el cierre.",
+  "Tip de Laura: el día de los 5K no es para buscar velocidad. Es para terminar, a tu ritmo, y disfrutar la llegada."
+];
+
+const weekLabels = [
+  "Adaptación","Adaptación","Resistencia inicial","Resistencia inicial",
+  "Consolidación","Consolidación","Pre-meta","Meta 5K"
+];
+
+// color por bloque, usando la paleta de la marca (verde bosque + salvia) + dorado para el cierre
+const blockColors = [
+  "var(--sage)", "var(--sage)",
+  "#5f8b68", "#5f8b68",
+  "var(--forest)", "var(--forest)",
+  "var(--forest-strong)",
+  "var(--gold)"
+];
+
+// ---------- STATE ----------
+let progress = {};
+let currentWeek = 1;
+
+function sessionKey(week, day){ return `w${week}d${day}`; }
+
+async function loadProgress(){
+  try{
+    const res = await window.storage.get('progress-5k', false);
+    if(res && res.value){ progress = JSON.parse(res.value); }
+  }catch(e){ progress = {}; }
+  render();
+}
+
+async function saveProgress(){
+  try{ await window.storage.set('progress-5k', JSON.stringify(progress), false); }
+  catch(e){ /* noop */ }
+}
+
+async function saveReflection(data){
+  try{ await window.storage.set('reflection-5k', JSON.stringify(data), false); }
+  catch(e){ /* noop */ }
+}
+
+function isSessionDone(week, day){ return !!progress[sessionKey(week, day)]; }
+function isWeekComplete(week){ return isSessionDone(week,1) && isSessionDone(week,2) && isSessionDone(week,3); }
+function isWeekUnlocked(week){ if(week === 1) return true; return isWeekComplete(week - 1); }
+function isDayUnlocked(week, day){ if(!isWeekUnlocked(week)) return false; if(day === 1) return true; return isSessionDone(week, day - 1); }
+
+function completedCount(){
+  let c = 0;
+  for(let w=1; w<=8; w++) for(let d=1; d<=3; d++) if(isSessionDone(w,d)) c++;
+  return c;
+}
+
+function firstIncompleteWeekDay(){
+  for(let w=1; w<=8; w++) for(let d=1; d<=3; d++) if(!isSessionDone(w,d)) return {week:w, day:d};
+  return null;
+}
+
+// ---------- RENDER: HOME ----------
+function renderHome(){
+  const total = completedCount();
+  document.getElementById('home-progress-label').textContent = `${total} de 24 sesiones`;
+  document.getElementById('home-progress-fill').style.width = `${(total/24)*100}%`;
+
+  const list = document.getElementById('weeks-list');
+  list.innerHTML = '';
+  for(let w=1; w<=8; w++){
+    const unlocked = isWeekUnlocked(w);
+    const complete = isWeekComplete(w);
+    const isCurrent = unlocked && !complete;
+
+    const item = document.createElement('div');
+    item.className = 'week-item' + (!unlocked ? ' locked' : '') + (isCurrent ? ' current' : '');
+    item.style.setProperty('--block-color', blockColors[w-1]);
+
+    let iconHtml, statusText;
+    if(complete){ iconHtml = '<div class="week-icon done">✓</div>'; statusText = 'Completa'; }
+    else if(unlocked){ iconHtml = '<div class="week-icon now">▶</div>'; statusText = 'En curso'; }
+    else { iconHtml = '<div class="week-icon locked-icon">🔒</div>'; statusText = ''; }
+
+    item.innerHTML = `
+      ${iconHtml}
+      <div class="week-info">
+        <p class="name">Semana ${w} · ${weekLabels[w-1]}</p>
+        <p class="sub">${weekLabels[w-1] === 'Meta 5K' ? 'Cierre del plan' : '3 sesiones'}</p>
+      </div>
+      <div class="week-status">${statusText}</div>
+    `;
+    if(unlocked){ item.addEventListener('click', () => openWeek(w)); }
+    list.appendChild(item);
+  }
+}
+
+document.getElementById('go-today-btn').addEventListener('click', () => {
+  const next = firstIncompleteWeekDay();
+  if(next){ openWeek(next.week); }
+  else { showScreen('finish-screen'); }
+});
+
+document.getElementById('reset-btn').addEventListener('click', async () => {
+  if(confirm('¿Reiniciar todo tu progreso? Esta acción no se puede deshacer.')){
+    progress = {};
+    await saveProgress();
+    render();
+  }
+});
+
+// ---------- RENDER: WEEK / DAY ----------
+function openWeek(week){
+  currentWeek = week;
+  showScreen('week-screen');
+  renderWeek();
+}
+
+function renderWeek(){
+  const w = currentWeek;
+  const dots = document.getElementById('week-dots');
+  dots.innerHTML = '';
+  for(let d=1; d<=3; d++){
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (isSessionDone(w,d) ? ' filled' : '');
+    dots.appendChild(dot);
+  }
+
+  const content = document.getElementById('week-content');
+  content.innerHTML = '';
+  const isWeek8 = (w === 8);
+
+  for(let d=1; d<=3; d++){
+    const unlocked = isDayUnlocked(w, d);
+    const done = isSessionDone(w, d);
+
+    const card = document.createElement('div');
+    card.className = 'card session-card';
+
+    if(!unlocked){
+      card.innerHTML = `
+        <div class="session-head">
+          <div class="badge">🔒</div>
+          <div><h3>Día ${d}</h3><p class="sub">Se desbloquea al completar el día anterior</p></div>
+        </div>
+        <p class="locked-msg">Todavía no disponible</p>
+      `;
+      content.appendChild(card);
+      continue;
+    }
+
+    let bodyHtml = '';
+    if(d === 2){
+      const items = strengthBlocks[w-1];
+      bodyHtml = `
+        <div class="session-head">
+          <div class="badge">🏋️</div>
+          <div><h3>Fuerza y movilidad</h3><p class="sub">15-20 minutos · sin equipo</p></div>
+        </div>
+        <ul class="exlist">${items.map(i => `<li>${i}</li>`).join('')}</ul>
+      `;
+    } else if(isWeek8 && d === 3){
+      bodyHtml = `
+        <div class="session-head">
+          <div class="badge">🏁</div>
+          <div><h3>Los 5K</h3><p class="sub">El día de la meta</p></div>
+        </div>
+        <div class="step-row"><span class="k">Entrada en calor</span><span>Caminata 5'</span></div>
+        <div class="step-row"><span class="k">Recorrido</span><span>5K continuo o con cortes mínimos</span></div>
+        <div class="step-row"><span class="k">Ritmo</span><span>El que dé el cuerpo, sin apuro</span></div>
+      `;
+    } else if(isWeek8 && d === 1){
+      bodyHtml = `
+        <div class="session-head">
+          <div class="badge">🏃</div>
+          <div><h3>Trote continuo</h3><p class="sub">Preparación final</p></div>
+        </div>
+        <div class="step-row"><span class="k">Entrada en calor</span><span>Caminata 5'</span></div>
+        <div class="step-row"><span class="k">Circuito</span><span>15' de trote continuo</span></div>
+        <div class="step-row"><span class="k">Cierre</span><span>Caminata de recuperación</span></div>
+      `;
+    } else {
+      const s = runSessions[w-1];
+      bodyHtml = `
+        <div class="session-head">
+          <div class="badge">🏃</div>
+          <div><h3>Trote y caminata</h3><p class="sub">Sesión de running</p></div>
+        </div>
+        <div class="step-row"><span class="k">Entrada en calor</span><span>Caminata 5'</span></div>
+        <div class="step-row"><span class="k">Circuito</span><span>${s.series} series · ${s.run} trote / ${s.walk} caminata</span></div>
+        <div class="step-row"><span class="k">Cierre</span><span>Caminata 5'</span></div>
+      `;
+    }
+
+    card.innerHTML = `
+      ${bodyHtml}
+      <div class="tip"><span class="icon">💡</span><span>${weeklyTips[w-1]}</span></div>
+      <button class="done-check ${done ? 'completed' : ''}" data-week="${w}" data-day="${d}">
+        ${done ? '✓ Completado' : 'Marcar como completado'}
+      </button>
+    `;
+    content.appendChild(card);
+  }
+
+  content.querySelectorAll('.done-check').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const wk = parseInt(e.currentTarget.dataset.week);
+      const dy = parseInt(e.currentTarget.dataset.day);
+      const key = sessionKey(wk, dy);
+      progress[key] = !progress[key];
+      await saveProgress();
+      renderWeek();
+      if(wk === 8 && isWeekComplete(8)){
+        setTimeout(() => showScreen('finish-screen'), 400);
+      }
+    });
+  });
+}
+
+document.getElementById('back-to-home').addEventListener('click', () => { showScreen('home-screen'); renderHome(); });
+document.getElementById('finish-to-reflection-btn').addEventListener('click', () => { showScreen('reflection-screen'); });
+document.getElementById('save-reflection-btn').addEventListener('click', async () => {
+  const data = {
+    feel: document.getElementById('reflection-feel').value,
+    challenge: document.getElementById('reflection-challenge').value,
+    recommend: document.getElementById('reflection-recommend').value
+  };
+  await saveReflection(data);
+  showScreen('upsell-screen');
+});
+document.getElementById('upsell-back-btn').addEventListener('click', () => { showScreen('home-screen'); renderHome(); });
+
+const WHATSAPP_NUMBER = '542995102802';
+function buildWhatsappLink(){
+  const msg = "Hola Laura! Recién terminé el plan De 0 a 5K de Movimiento Consciente y llegué hasta el final 🏃‍♀️ Quiero contarte cómo me fue y me interesa saber más sobre el próximo desafío, De 5 a 10K.";
+  document.getElementById('whatsapp-btn').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+}
+buildWhatsappLink();
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function render(){ renderHome(); }
+
+loadProgress();
+</script>
+</body>
+</html>
